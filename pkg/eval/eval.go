@@ -41,6 +41,14 @@ func TokensToExpression(tokens []tokenizer.Token) (Expression, error) {
 			})
 
 		case string:
+
+			if num, ok := defaultConstantMap[token.Data.(string)]; ok {
+				postfix = append(postfix, expressionNode{
+					data: num,
+				})
+				continue
+			}
+
 			op, err := opStringToOperator(token.Data.(string))
 			if err != nil {
 				return nil, err
@@ -95,6 +103,9 @@ func Evaluate(expr Expression) (float64, error) {
 				return 0, err
 			}
 			operandStack.Push(result)
+
+		case constant:
+			operandStack.Push(float64(node.data.(constant).value))
 
 		case float64:
 			operandStack.Push(node.data.(float64))

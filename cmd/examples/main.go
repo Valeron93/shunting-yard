@@ -23,6 +23,11 @@ func main() {
 		"floor(9.9) + ceil(1.1)",
 		"exp(log(100))",
 		"1 + sin 2",
+		"pi + 1",
+		"exp(2.2)",
+		"e^2.2",
+		"phi",
+		"(1+sqrt(5))/2",
 	}
 	printExamples(examples)
 }

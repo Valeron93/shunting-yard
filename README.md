@@ -8,9 +8,10 @@ Implemented features:
 - Number parsing
 - Basic arithmetic operators
 - Basic mathematical functions (sin, cos, sqrt, floor, etc...)
+- Basic mathematical constants (pi, phi, e, etc...)
 
 ## TODO:
-- [ ] Constant expressions (e.g. Pi, Euler's, Phi)
+- [x] Constant expressions (e.g. Pi, Euler's, Phi)
 - [ ] More meaningful error messages
 - [ ] Unit tests
 
@@ -115,5 +116,40 @@ example: "1 + sin 2"
 tokenizer output: [1 + sin 2]
 parsed expression: [1 2 sin +]
 result: 1.9092974268256815
+------------------------
+
+------ EXAMPLE 14 ------
+example: "pi + 1"
+tokenizer output: [pi + 1]
+parsed expression: [pi 1 +]
+result: 4.141592653589793
+------------------------
+
+------ EXAMPLE 15 ------
+example: "exp(2.2)"
+tokenizer output: [exp ( 2.2 )]
+parsed expression: [2.2 exp]
+result: 9.025013499434122
+------------------------
+
+------ EXAMPLE 16 ------
+example: "e^2.2"
+tokenizer output: [e ^ 2.2]
+parsed expression: [e 2.2 ^]
+result: 9.025013499434122
+------------------------
+
+------ EXAMPLE 17 ------
+example: "phi"
+tokenizer output: [phi]
+parsed expression: [phi]
+result: 1.618033988749895
+------------------------
+
+------ EXAMPLE 18 ------
+example: "(1+sqrt(5))/2"
+tokenizer output: [( 1 + sqrt ( 5 ) ) / 2]
+parsed expression: [1 5 sqrt + 2 /]
+result: 1.618033988749895
 ------------------------
 ```
