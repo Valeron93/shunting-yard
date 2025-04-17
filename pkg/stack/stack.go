@@ -1,5 +1,7 @@
 package stack
 
+import "fmt"
+
 type Stack[T any] struct {
 	items []T
 }
@@ -17,7 +19,7 @@ func (s *Stack[T]) MustPeek() T {
 }
 
 func (s *Stack[T]) MustPop() T {
-	
+
 	last := s.Count() - 1
 	elem := s.items[last]
 	s.items = s.items[:last]
@@ -38,4 +40,10 @@ func (s *Stack[T]) Peek() (T, bool) {
 		return zero, false
 	}
 	return s.MustPeek(), true
+}
+
+func (s *Stack[T]) String() string {
+
+	return fmt.Sprintf("Stack %v", s.items)
+
 }

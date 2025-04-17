@@ -1,24 +1,15 @@
 package tokenizer
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"unicode"
-
-	"github.com/Valeron93/shunting-yard/pkg/operator"
-	"github.com/Valeron93/shunting-yard/pkg/stack"
 )
 
-type TokenType int16
-
-const (
-	Op     TokenType = iota
-	Number TokenType = iota
-)
+const AllowedSimpleOperators = "()*-+/%^"
 
 type Token struct {
-	Type TokenType
 	Data any
 }
 
@@ -37,19 +28,7 @@ func parseNumber(input []rune) (int, float64, error) {
 }
 
 func (t Token) String() string {
-
-	switch t.Type {
-
-	case Op:
-		op := string(t.Data.(operator.Operator))
-		return fmt.Sprintf("%v", op)
-
-	case Number:
-		return fmt.Sprintf("%v", t.Data.(float64))
-	default:
-		return "unknown token"
-	}
-
+	return fmt.Sprintf("%v", t.Data)
 }
 
 func Tokenize(input []rune) ([]Token, error) {
@@ -59,7 +38,7 @@ func Tokenize(input []rune) ([]Token, error) {
 	for i < len(input) {
 		c := input[i]
 
-		if unicode.IsSpace(c) {
+		if unicode.IsSpace(c) || c == ',' {
 			i++
 			continue
 		}
@@ -70,72 +49,40 @@ func Tokenize(input []rune) ([]Token, error) {
 			}
 
 			tokens = append(tokens, Token{
-				Type: Number,
 				Data: num,
 			})
 
 			i += count
 			continue
 		}
-		op, err := operator.FromRune(c)
-		if err != nil {
-			return nil, err
+
+		if strings.ContainsRune(AllowedSimpleOperators, c) {
+			tokens = append(tokens, Token{
+				Data: string(c),
+			})
+			i++
+			continue
 		}
-		tokens = append(tokens, Token{
-			Type: Op,
-			Data: op,
-		})
-		i++
+
+		var f strings.Builder
+		for _, s := range input[i:] {
+			if strings.ContainsRune(AllowedSimpleOperators, s) {
+				break
+			}
+			if unicode.IsSpace(s) || s == ',' {
+				break
+			}
+			f.WriteRune(s)
+		}
+
+		data := f.String()
+		if len(data) > 0 {
+			tokens = append(tokens, Token{
+				Data: f.String(),
+			})
+			i += len(data)
+		}
 	}
 
 	return tokens, nil
-}
-
-func InfixToPostfix(infix []Token) ([]Token, error) {
-	postfix := make([]Token, 0, 10)
-	var stack stack.Stack[operator.Operator]
-
-	for _, token := range infix {
-
-		if token.Type == Number {
-			postfix = append(postfix, token)
-			continue
-		}
-
-		op := token.Data.(operator.Operator)
-
-		if op == operator.ParenOpen {
-			stack.Push(op)
-			continue
-		}
-
-		if op == operator.ParenClose {
-			for stack.Count() > 0 && stack.MustPeek() != operator.ParenOpen {
-				postfix = append(postfix, NewTokenFromOperator(stack.MustPop()))
-			}
-			_, ok := stack.Pop()
-			if !ok {
-				return nil, errors.New("stack was empty")
-			}
-			continue
-		}
-
-		for stack.Count() > 0 && op.Precedence() <= stack.MustPeek().Precedence() {
-			postfix = append(postfix, NewTokenFromOperator(stack.MustPop()))
-		}
-		stack.Push(op)
-	}
-
-	for stack.Count() > 0 {
-		postfix = append(postfix, NewTokenFromOperator(stack.MustPop()))
-	}
-
-	return postfix, nil
-}
-
-func NewTokenFromOperator(op operator.Operator) Token {
-	return Token{
-		Type: Op,
-		Data: op,
-	}
 }

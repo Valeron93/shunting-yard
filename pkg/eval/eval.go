@@ -2,49 +2,117 @@ package eval
 
 import (
 	"errors"
+	"fmt"
 
-	"github.com/Valeron93/shunting-yard/pkg/operator"
 	"github.com/Valeron93/shunting-yard/pkg/stack"
 	"github.com/Valeron93/shunting-yard/pkg/tokenizer"
 )
 
+type expressionNode struct {
+	data any
+}
 
-func Evaluate(tokens []tokenizer.Token) (float64, error) {
-	
-	var stack stack.Stack[float64]
+func (e expressionNode) String() string {
+	return fmt.Sprintf("%v", e.data)
+}
+
+type Expression []expressionNode
+
+func opStringToOperator(op string) (operator, error) {
+
+	if f, ok := defaultOperatorMap[op]; ok {
+		return f, nil
+	}
+
+	return nil, fmt.Errorf("unknown operator/function: %v", op)
+}
+
+func TokensToExpression(tokens []tokenizer.Token) (Expression, error) {
+	postfix := make(Expression, 0, 10)
+	var stack stack.Stack[operator]
 
 	for _, token := range tokens {
-		if token.Type == tokenizer.Number {
-			stack.Push(token.Data.(float64))
-			continue
+
+		switch token.Data.(type) {
+
+		case float64:
+			postfix = append(postfix, expressionNode{
+				data: token.Data,
+			})
+
+		case string:
+			op, err := opStringToOperator(token.Data.(string))
+			if err != nil {
+				return nil, err
+			}
+
+			switch op {
+			case parenOpen:
+				stack.Push(op)
+
+			case parenClose:
+				for stack.Count() > 0 && stack.MustPeek() != parenOpen {
+					postfix = append(postfix, expressionNode{
+						data: stack.MustPop(),
+					})
+				}
+				_, ok := stack.Pop()
+				if !ok {
+					return nil, errors.New("stack was empty")
+				}
+
+			default:
+				for stack.Count() > 0 && op.Precedence() <= stack.MustPeek().Precedence() {
+					postfix = append(postfix, expressionNode{
+						data: stack.MustPop(),
+					})
+				}
+				stack.Push(op)
+			}
 		}
+	}
 
-		if token.Type == tokenizer.Op {
-			operand2, ok := stack.Pop()
-			if !ok {
-				return 0, errors.New("failed to get second operand, stack is malformed")
-			}
-			operand1, ok := stack.Pop()
-			if !ok {
-				return 0, errors.New("failed to get first operand, stack is malformed")
-			}
+	for stack.Count() > 0 {
+		postfix = append(postfix, expressionNode{
+			data: stack.MustPop(),
+		})
+	}
 
-			op := token.Data.(operator.Operator)
-			result, err := op.Apply(operand1, operand2)
+	return postfix, nil
+}
+
+func Evaluate(expr Expression) (float64, error) {
+
+	var operandStack stack.Stack[float64]
+
+	for _, node := range expr {
+
+		switch node.data.(type) {
+
+		case operator:
+			result, err := node.data.(operator).Apply(&operandStack)
 			if err != nil {
 				return 0, err
 			}
-			stack.Push(result)
+			operandStack.Push(result)
+
+		case float64:
+			operandStack.Push(node.data.(float64))
+
+		default:
+			return 0, fmt.Errorf("not implemented node type")
+
 		}
 	}
-	result, ok := stack.Pop()
+
+	result, ok := operandStack.Pop()
 	if !ok {
-		return 0, errors.New("failed to get result, stack is malformed")
+		return 0, fmt.Errorf("failed to evaluate expression, stack was empty")
 	}
-	if stack.Count() > 0 {
-		return 0, errors.New("stack was not empty")
+
+	if operandStack.Count() > 0 {
+		return 0, fmt.Errorf("failed to evaluate expression, stack was not empty: %v", operandStack)
 	}
 
 	return result, nil
-
 }
