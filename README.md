@@ -3,6 +3,7 @@
 ## Description
 
 A simple shunting yard algorithm implementation in Go. This algorithm is used to parse and evaluate mathematical expressions.
+Program can be used a library, or terminal UI calculator application.
 
 Implemented features:
 - Number parsing
@@ -14,13 +15,23 @@ Implemented features:
 - [x] Constant expressions (e.g. Pi, Euler's, Phi)
 - [ ] More meaningful error messages
 - [ ] Unit tests
+- [ ] Add history to TUI
 
 ## Building and running the program
+
+### Run terminal UI
+```shell
+$ go run ./cmd/ui
+```
 
 ### Run examples
 ```shell
 $ go run ./cmd/examples
 ```
+
+## References:
+- [Shunting Yard Algorithm (Wikipedia)](https://en.wikipedia.org/wiki/Shunting_yard_algorithm)
+- [bubbletea (Go TUI Library)](https://github.com/charmbracelet/bubbletea)
 
 ## Examples demo: 
 

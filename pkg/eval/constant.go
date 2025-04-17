@@ -4,15 +4,15 @@ import "math"
 
 var defaultConstantMap = map[string]constant{
 	"pi": {
-		name: "pi",
+		name:  "pi",
 		value: math.Pi,
 	},
-	"e":  {
-		name: "e",
+	"e": {
+		name:  "e",
 		value: math.E,
 	},
 	"phi": {
-		name: "phi",
+		name:  "phi",
 		value: math.Phi,
 	},
 }
