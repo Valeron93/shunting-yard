@@ -7,18 +7,21 @@ import (
 	"github.com/Valeron93/shunting-yard/pkg/eval"
 	"github.com/Valeron93/shunting-yard/pkg/tokenizer"
 	"github.com/chzyer/readline"
+	"github.com/fatih/color"
 )
 
 func printWelcome() {
-	fmt.Println("Shunting Yard Interactive Shell")
-	fmt.Println("Type \"help\" for more information")
+	color.Yellow("Shunting Yard Interactive Shell")
+	color.HiWhite("Type \"help\" for more information")
 }
 
 func printHelpMenu() {
-	fmt.Println("Type a mathematical expression to evaluate.")
+	c := color.New(color.Underline)
+
+	c.Println("Type a mathematical expression to evaluate.")
 	fmt.Println("Commands:")
-	fmt.Println("\thelp - show this help")
-	fmt.Println("\texit - exit the program")
+	fmt.Printf("\t%s - show this help\n", color.GreenString("help"))
+	fmt.Printf("\t%s - exit the program\n", color.GreenString("exit"))
 }
 
 func evaluateExprAndPrint(input string) {
@@ -26,28 +29,28 @@ func evaluateExprAndPrint(input string) {
 	tokens, err := tokenizer.Tokenize([]rune(input))
 
 	if err != nil {
-		fmt.Printf("Tokenizer failed: %v\n", err)
+		color.Red("Tokenizer failed: %v\n", err)
 		return
 	}
 
 	expr, err := eval.TokensToExpression(tokens)
 	if err != nil {
-		fmt.Printf("Parser failed: %v\n", err)
+		color.Red("Parser failed: %v\n", err)
 		return
 	}
 
 	value, err := eval.Evaluate(expr)
 	if err != nil {
-		fmt.Printf("Evaluator failed: %v\n", err)
+		color.Red("Evaluator failed: %v\n", err)
 		return
 	}
 
-	fmt.Printf("= %v\n", value)
+	fmt.Printf("%s %v\n", color.YellowString("="), value)
 }
 
 func main() {
 	rl, err := readline.NewEx(&readline.Config{
-		Prompt:          "> ",
+		Prompt:          color.YellowString("> "),
 		InterruptPrompt: "^C",
 		EOFPrompt:       "exit",
 	})
@@ -57,16 +60,15 @@ func main() {
 	defer rl.Close()
 
 	printWelcome()
-	run := true
-	for run {
+	for {
 		line, err := rl.Readline()
 		if err != nil {
-			run = false
+			return
 		}
 
 		switch line = strings.TrimSpace(line); line {
 		case "exit":
-			run = false
+			return
 
 		case "help":
 			printHelpMenu()
