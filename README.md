@@ -31,7 +31,7 @@ $ go run ./cmd/examples
 
 ## References:
 - [Shunting Yard Algorithm (Wikipedia)](https://en.wikipedia.org/wiki/Shunting_yard_algorithm)
-- [bubbletea (Go TUI Library)](https://github.com/charmbracelet/bubbletea)
+- [Go Readline Library](https://pkg.go.dev/github.com/chzyer/readline)
 
 ## Examples demo: 
 
