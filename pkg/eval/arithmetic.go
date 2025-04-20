@@ -1,7 +1,6 @@
 package eval
 
 import (
-	"errors"
 	"fmt"
 	"math"
 
@@ -42,14 +41,12 @@ func (op arithmetic) Apply(operandStack *stack.Stack[float64]) (result float64, 
 		return -operandStack.MustPop(), nil
 	}
 
-	operand2, ok := operandStack.Pop()
-	if !ok {
-		return 0, errors.New("failed to get second operand, stack is malformed")
+	if operandStack.Count() < 2 {
+		return 0, fmt.Errorf("operator %v expects 2 arguments, got %v", op, operandStack.Count())
 	}
-	operand1, ok := operandStack.Pop()
-	if !ok {
-		return 0, errors.New("failed to get second operand, stack is malformed")
-	}
+
+	operand2 := operandStack.MustPop()
+	operand1 := operandStack.MustPop()
 
 	switch op {
 	case minus:

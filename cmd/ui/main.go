@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"strings"
 
@@ -10,9 +11,14 @@ import (
 	"github.com/fatih/color"
 )
 
+var verbose bool = false
+
 func printWelcome() {
 	color.Yellow("Shunting Yard Interactive Shell")
 	color.HiWhite("Type \"help\" for more information")
+	if verbose {
+		color.Green("Running in verbose mode")
+	}
 }
 
 func printHelpMenu() {
@@ -22,21 +28,26 @@ func printHelpMenu() {
 	fmt.Println("Commands:")
 	fmt.Printf("\t%s - show this help\n", color.GreenString("help"))
 	fmt.Printf("\t%s - exit the program\n", color.GreenString("exit"))
+	fmt.Println("Flags:")
+	fmt.Printf("\t%s - show additional tokenizer and parser output\n", color.GreenString("-verbose"))
 }
 
 func evaluateExprAndPrint(input string) {
 
-	tokens, err := tokenizer.Tokenize([]rune(input))
+	tokens := tokenizer.Tokenize(input)
 
-	if err != nil {
-		color.Red("Tokenizer failed: %v\n", err)
-		return
+	if verbose {
+		color.Green("Tokens: %v", tokens)
 	}
 
 	expr, err := eval.TokensToExpression(tokens)
 	if err != nil {
 		color.Red("Parser failed: %v\n", err)
 		return
+	}
+
+	if verbose {
+		color.Green("Expression: %v", expr)
 	}
 
 	value, err := eval.Evaluate(expr)
@@ -49,6 +60,9 @@ func evaluateExprAndPrint(input string) {
 }
 
 func main() {
+	flag.BoolVar(&verbose, "verbose", false, "show tokenizer and parser output")
+	flag.Parse()
+
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:          color.YellowString("> "),
 		InterruptPrompt: "^C",

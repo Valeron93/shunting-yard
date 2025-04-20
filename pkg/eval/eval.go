@@ -3,6 +3,7 @@ package eval
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/Valeron93/shunting-yard/pkg/stack"
 	"github.com/Valeron93/shunting-yard/pkg/tokenizer"
@@ -18,40 +19,51 @@ func (e expressionNode) String() string {
 
 type Expression []expressionNode
 
-func opStringToOperator(op string) (operator, error) {
-
-	if f, ok := defaultOperatorMap[op]; ok {
-		return f, nil
-	}
-
-	return nil, fmt.Errorf("unknown operator/function: %v", op)
-}
-
 func TokensToExpression(tokens []tokenizer.Token) (Expression, error) {
 	postfix := make(Expression, 0, 10)
 	var stack stack.Stack[operator]
 
+	pushFunc := func(f operator) {
+		for stack.Count() > 0 && f.Precedence() <= stack.MustPeek().Precedence() {
+			postfix = append(postfix, expressionNode{
+				data: stack.MustPop(),
+			})
+		}
+		stack.Push(f)
+	}
+
 	for _, token := range tokens {
 
-		switch token.Data.(type) {
+		switch token.Type {
 
-		case float64:
+		case tokenizer.Number:
+			num, err := strconv.ParseFloat(token.Str, 64)
+			if err != nil {
+				return postfix, err
+			}
 			postfix = append(postfix, expressionNode{
-				data: token.Data,
+				data: num,
 			})
 
-		case string:
+		case tokenizer.Identifier:
+			if f, ok := defaultFunctionMap[token.Str]; ok {
+				pushFunc(f)
+				continue
+			}
 
-			if num, ok := defaultConstantMap[token.Data.(string)]; ok {
+			if num, ok := defaultConstantMap[token.Str]; ok {
 				postfix = append(postfix, expressionNode{
 					data: num,
 				})
 				continue
 			}
 
-			op, err := opStringToOperator(token.Data.(string))
-			if err != nil {
-				return nil, err
+			return postfix, fmt.Errorf("unknown identifier: %v", token.Str)
+
+		case tokenizer.Operator:
+			op, ok := defaultOperatorMap[token.Str]
+			if !ok {
+				return postfix, fmt.Errorf("unknown operator %v", token.Str)
 			}
 
 			switch op {
@@ -70,14 +82,13 @@ func TokensToExpression(tokens []tokenizer.Token) (Expression, error) {
 				}
 
 			default:
-				for stack.Count() > 0 && op.Precedence() <= stack.MustPeek().Precedence() {
-					postfix = append(postfix, expressionNode{
-						data: stack.MustPop(),
-					})
-				}
-				stack.Push(op)
+				pushFunc(op)
 			}
+
+		default:
+			return postfix, fmt.Errorf("invalid token `%v`", token.Str)
 		}
+
 	}
 
 	for stack.Count() > 0 {
@@ -112,7 +123,6 @@ func Evaluate(expr Expression) (float64, error) {
 
 		default:
 			return 0, fmt.Errorf("not implemented node type")
-
 		}
 	}
 

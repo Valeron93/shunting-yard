@@ -12,6 +12,19 @@ type operator interface {
 }
 
 var defaultOperatorMap = map[string]operator{
+	"(":   parenOpen,
+	")":   parenClose,
+	"+":   plus,
+	"-":   minus,
+	"*":   mul,
+	"/":   div,
+	"%":   mod,
+	"mod": mod,
+	"^":   pow,
+	"**":  pow,
+}
+
+var defaultFunctionMap = map[string]operator{
 	"sin":   NewUnaryFunction("sin", math.Sin),
 	"asin":  NewUnaryFunction("asin", math.Asin),
 	"acos":  NewUnaryFunction("acos", math.Acos),
@@ -24,13 +37,4 @@ var defaultOperatorMap = map[string]operator{
 	"floor": NewUnaryFunction("floor", math.Floor),
 	"ceil":  NewUnaryFunction("ceil", math.Ceil),
 	"abs":   NewUnaryFunction("abs", math.Abs),
-	"(":     parenOpen,
-	")":     parenClose,
-	"+":     plus,
-	"-":     minus,
-	"*":     mul,
-	"/":     div,
-	"%":     mod,
-	"mod":   mod,
-	"^":     pow,
 }

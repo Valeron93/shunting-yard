@@ -28,6 +28,7 @@ func main() {
 		"e^2.2",
 		"phi",
 		"(1+sqrt(5))/2",
+		"sin(1+1.2+1e-6)+.2+1000+10000000",
 	}
 	printExamples(examples)
 }
@@ -37,12 +38,7 @@ func printExample(n int, example string) {
 	fmt.Printf("------ EXAMPLE %v ------\n", n)
 	defer fmt.Print("------------------------\n\n")
 	fmt.Printf("example: \"%v\"\n", example)
-	input := []rune(example)
-	output, err := tokenizer.Tokenize(input)
-	if err != nil {
-		fmt.Printf("failed to tokenize: `%v`\n", err)
-		return
-	}
+	output := tokenizer.Tokenize(example)
 	fmt.Printf("tokenizer output: %v\n", output)
 	expr, err := eval.TokensToExpression(output)
 	if err != nil {
